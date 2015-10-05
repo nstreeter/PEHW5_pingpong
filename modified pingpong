@@ -1,0 +1,231 @@
+class Ball {
+  float initialX, initialY;
+  float x, y;
+  float vx, vy;
+  float size = 10;
+  color c;
+
+  Ball(float x, float y, color c) {
+    this.x = initialX = x;
+    this.y = initialY = y;
+    this.c = c;
+    vx = 2+random(1);
+    vy = random(1);
+  }
+
+  void draw() {
+    noStroke();
+    fill(c);
+    ellipse(x, y, size*2, size*2);
+  }
+
+  void reset() {
+    x = initialX;
+    y = initialY;
+    vx = 1+random(2);
+    if (random(2) < 0.5) {
+      vx = -vx;
+    }
+    vy = 1+random(2);
+    if (random(2)<0.5) {
+      vy=-vy;
+    }
+  }
+
+  void move() {
+    x += vx;
+    y += vy;
+    if (x < size || x > width-size) {
+      vx = -vx;
+    }
+    if (y < size || y > height-size) {
+      vy = -vy;
+    }
+    if (x-size < leftPaddle.x + leftPaddle.w) {
+      if (y > leftPaddle.y &&
+        y < leftPaddle.y + leftPaddle.h) {
+        vx = -vx*1.1;
+      } else {
+        rightScore++;
+        reset();
+      }
+    }
+    if (x+size > rightPaddle.x) {
+      if (y > rightPaddle.y &&
+        y < rightPaddle.y + rightPaddle.h) {
+        vx = -vx*1.1;
+      } else {
+        leftScore++;
+        reset();
+      }
+    }
+    if (y-size <topPaddle.y) {
+      if (x>topPaddle.x &&
+        x<topPaddle.x+topPaddle.w) {
+        vy=-vy*1.1;
+      } else {
+        topScore++;
+        reset();
+      }
+    }
+    if (y+size >bottomPaddle.y) {
+      if (x>bottomPaddle.x &&
+        x<bottomPaddle.x + bottomPaddle.w) {
+        vy=-vy*1.1;
+      } else {
+        bottomScore++;
+        reset();
+      }
+    }
+  }
+}
+
+class Paddle {
+  float initialX, initialY;
+  float x, y;
+  float vy, vx;
+  float w = 15, h = 80;
+  color c;
+
+  Paddle(float x, float y, color c) {
+    this.x = initialX =x;
+    this.y =initialY= y;
+    this.c = c;
+    vy = 0;
+    vx = 0;
+  }
+
+  void draw() {
+    noStroke();
+    fill(c);
+    rect(x, y, w, h);
+    if (x==250) {
+      w=80;
+      h=15;
+    }
+  }
+
+  void move() {
+    y += vy;
+    x += vx;
+    if (initialY<height-h) {
+      y=constrain(y, 0, height-15);
+      if (y < 0 || y > height-h) {
+        vy = 0;
+        y = constrain(y, 0, height-h);
+      }
+    }
+    if (x<0 || x>width-w) {
+      vx=0;
+      x = constrain(x, 0, width-w);
+    }
+  }
+}
+
+ArrayList<Ball> list;
+Paddle leftPaddle, rightPaddle, topPaddle, bottomPaddle;
+int leftScore = 0;
+int rightScore = 0;
+int topScore =0;
+int bottomScore =0;
+
+void setup() {
+  size(500, 500);
+  colorMode(HSB, 255);
+  list = new ArrayList<Ball>();
+  list.add(new Ball(width/2, height/2, color(random(255), 255, 255)));
+
+  leftPaddle = new Paddle(15, height/2, color(100, 150, 200));
+  rightPaddle = new Paddle(width-30, height/2, color(25, 150, 100));
+  topPaddle= new Paddle(width/2, 15, color(75, 150, 75)); 
+  bottomPaddle=new Paddle(width/2, height-30, color(200, 200, 100));
+}
+
+void drawScores() {
+  textSize(32);
+  fill(100, 150, 200);
+  text(""+leftScore, width/2-150, height/2);
+  fill(25, 150, 100);
+  text(""+rightScore, width/2+150, height/2);
+  fill(75, 150, 75);
+  text(""+topScore, width/2, height/2-150);
+  fill(200, 200, 100);
+  text(""+bottomScore, width/2, height/2+150);
+}
+
+void draw() {
+  background(255);
+
+  for (int i = 0; i < list.size(); i += 1) {
+    list.get(i).draw();
+    list.get(i).move();
+  }
+
+  leftPaddle.move();
+  leftPaddle.draw();
+  rightPaddle.move();
+  rightPaddle.draw();
+  topPaddle.move();
+  topPaddle.draw();
+  bottomPaddle.move();
+  bottomPaddle.draw();
+  drawScores();
+}
+
+void mousePressed() {
+  list.add(new Ball(mouseX, mouseY, color(random(255), 255, 255)));
+}
+
+void keyPressed() {
+  if (key == 'w') {
+    leftPaddle.vy = -4;
+  }
+  if (key == 's') {
+    leftPaddle.vy = 4;
+  }
+  if (keyCode == UP) {
+    rightPaddle.vy = -4;
+  }
+  if (keyCode == DOWN) {
+    rightPaddle.vy = 4;
+  }
+  if (key == 'o') {
+    topPaddle.vx =-4;
+  }
+  if (key=='p') {
+    topPaddle.vx =4;
+  }
+  if (key=='z') {
+    bottomPaddle.vx=-4;
+  }
+  if (key=='x') {
+    bottomPaddle.vx=4;
+  }
+}
+
+void keyReleased() {
+  if (key == 'w' && leftPaddle.vy < 0) {
+    leftPaddle.vy = 0;
+  }
+  if (key == 's' && leftPaddle.vy > 0) {
+    leftPaddle.vy = 0;
+  }
+  if (keyCode == UP && rightPaddle.vy < 0) {
+    rightPaddle.vy = 0;
+  }
+  if (keyCode == DOWN && rightPaddle.vy > 0) {
+    rightPaddle.vy = 0;
+  }
+  if (key=='o' && topPaddle.vx<0) {
+    topPaddle.vx=0;
+  }
+  if (key=='p' && topPaddle.vx>0) {
+    topPaddle.vx=0;
+  }
+  if (key=='z' && bottomPaddle.vx<0) {
+    bottomPaddle.vx=0;
+  }
+  if (key=='x' && bottomPaddle.vx>0) {
+    bottomPaddle.vx=0;
+  }
+}
